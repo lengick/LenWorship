@@ -1,0 +1,31 @@
+name: Compilar Len-Worship (Windows VST3)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar
+        run: cmake -B build -A x64
+
+      - name: Compilar el VST3 (Release)
+        run: cmake --build build --config Release --target LenWorship_VST3 --parallel
+
+      - name: Preparar carpeta de salida
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item -Recurse "build/LenWorship_artefacts/Release/VST3/Len-Worship.vst3" dist/
+          Get-ChildItem -Recurse dist | Select-Object -First 20 FullName
+
+      - name: Subir el VST3 compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: Len-Worship-VST3-Windows
+          path: dist
